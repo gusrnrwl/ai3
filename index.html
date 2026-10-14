@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<!-- 모바일 화면 비율 고정 및 확대 방지 -->
+<!-- 화면 확대 및 당겨서 새로고침 방지 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AI 방패와 사라진 접속자</title>
 <style>
@@ -12,12 +12,18 @@
     margin: 0; padding: 0; background-color: #111; color: #fff;
     font-family: 'Galmuri11', sans-serif; display: flex; flex-direction: column;
     justify-content: center; align-items: center; height: 100vh; overflow: hidden;
+    touch-action: none; /* 모바일에서 화면 스크롤 방지 */
   }
 
-  /* 반응형 게임 화면 */
+  /* 게임 래퍼 - 세로 모드 기본 (4:3 비율 유지) */
   #game-wrapper {
-    position: relative; width: 100%; max-width: 640px; aspect-ratio: 4 / 3;
-    box-shadow: 0 0 20px rgba(0,0,0,1); overflow: hidden;
+    position: relative; 
+    width: 100vw; 
+    height: 75vw; 
+    max-width: 640px; 
+    max-height: 480px;
+    box-shadow: 0 0 20px rgba(0,0,0,1); 
+    overflow: hidden;
   }
 
   #game-container {
@@ -26,6 +32,7 @@
     image-rendering: pixelated;
   }
   
+  /* 화면 흔들림 효과 */
   @keyframes shake {
     0% { transform: translate(2px, 2px) rotate(0deg); }
     10% { transform: translate(-2px, -2px) rotate(-1deg); }
@@ -49,7 +56,7 @@
     transition: opacity 0.5s ease; z-index: 50;
     display: flex; justify-content: center; align-items: center; text-align: center;
   }
-  #fade-text { color: #fff; font-size: clamp(16px, 4vw, 20px); transition: opacity 0.3s ease; line-height: 1.5; padding: 0 20px; }
+  #fade-text { color: #fff; font-size: clamp(16px, 4vw, 20px); transition: opacity 0.3s ease; line-height: 1.5; padding: 0 20px;}
 
   #objection-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -65,11 +72,11 @@
   .objection-active #objection-text { transform: scale(1.2); }
 
   #dialogue-box {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 140px;
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 32%; min-height: 120px;
     background: linear-gradient(135deg, rgba(0, 30, 80, 0.95), rgba(0, 10, 30, 0.95));
     border-top: 3px solid #fff; border-left: 3px solid #fff; border-right: 3px solid #fff;
-    border-radius: 8px 8px 0 0; padding: 20px; box-sizing: border-box;
-    display: none; z-index: 20;
+    border-radius: 8px 8px 0 0; padding: 15px; box-sizing: border-box;
+    display: none; z-index: 20; overflow-y: auto;
   }
   #dialogue-box.trial-mode { background: linear-gradient(135deg, rgba(100, 0, 0, 0.95), rgba(40, 0, 0, 0.95)); }
   #speaker-name { color: #ffd54f; font-size: clamp(14px, 4vw, 18px); margin-bottom: 8px; font-weight: bold; text-shadow: 2px 2px 0px #000; }
@@ -91,7 +98,7 @@
   #notebook-content { margin-top: 10px; }
   #evidence-menu h3 { margin: 0 0 10px 0; font-size: 14px; color: #4caf50; text-align: center; border-bottom: 1px dashed #fff; padding-bottom: 8px; }
   
-  #evidence-list-container { max-height: 220px; overflow-y: auto; overflow-x: hidden; padding-right: 5px;}
+  #evidence-list-container { max-height: 30vh; overflow-y: auto; overflow-x: hidden; padding-right: 5px;}
   #evidence-list-container::-webkit-scrollbar { width: 6px; }
   #evidence-list-container::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
   
@@ -100,7 +107,8 @@
 
   #evidence-modal {
     position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-    width: 80%; max-width: 320px; background: rgba(20, 20, 20, 0.95);
+    width: 80%; max-width: 320px; max-height: 90vh; overflow-y: auto;
+    background: rgba(20, 20, 20, 0.95);
     border: 3px solid #ffeb3b; border-radius: 8px; padding: 15px;
     display: none; z-index: 40; box-shadow: 0 0 15px rgba(0,0,0,0.8);
   }
@@ -114,7 +122,7 @@
   }
   #present-btn { background: #b71c1c; border-color: #f44336; display: none; font-weight: bold;}
 
-  #map-name-ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 5px 10px; border: 1px solid #fff; font-size: 12px; color: #fff; z-index: 4; border-radius: 4px;}
+  #map-name-ui { position: absolute; top: 50px; left: 10px; background: rgba(0,0,0,0.7); padding: 5px 10px; border: 1px solid #fff; font-size: 12px; color: #fff; z-index: 4; border-radius: 4px;}
   
   #audio-btn {
     position: absolute; top: 10px; left: 10px; z-index: 100;
@@ -122,7 +130,7 @@
     border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 2px 2px 0px #000; font-size: 12px;
   }
 
-  /* 📱 모바일 가상 조이패드 UI */
+  /* 📱 모바일 세로 모드 컨트롤 UI */
   #mobile-controls {
     display: none; width: 100%; max-width: 640px; margin-top: 15px;
     padding: 0 15px; box-sizing: border-box; justify-content: space-between; align-items: center;
@@ -133,14 +141,33 @@
     color: white; font-family: 'Galmuri11'; border-radius: 8px; font-size: 18px;
     height: 50px; user-select: none; touch-action: manipulation;
   }
-  .dpad button:active, .action-btns button:active { background: rgba(255, 255, 255, 0.4); }
   .action-btns { display: flex; gap: 10px; }
-  .action-btns button { width: 65px; height: 65px; font-size: 14px; border-radius: 50%; font-weight: bold; }
+  .action-btns button { width: 60px; height: 60px; font-size: 14px; border-radius: 50%; font-weight: bold; }
   #controls-help { margin-top: 15px; font-size: 12px; color: #888; text-align: center; line-height: 1.5; }
 
   @media (max-width: 768px) {
     #mobile-controls { display: flex; }
     #controls-help { display: none; }
+  }
+
+  /* 📱 모바일 가로 모드 (Landscape) 대응 */
+  @media (orientation: landscape) and (max-height: 500px) {
+    #game-wrapper {
+      width: 133.33vh; /* 가로를 높이에 맞춰 4:3으로 변환 */
+      height: 100vh;
+      max-width: none;
+      max-height: none;
+    }
+    #mobile-controls {
+      position: absolute; bottom: 15px; left: 0; width: 100%;
+      padding: 0 30px; box-sizing: border-box;
+      display: flex; justify-content: space-between;
+      z-index: 100; margin-top: 0; pointer-events: none; /* 캔버스 터치 방해 금지 */
+    }
+    .dpad button, .action-btns button {
+      pointer-events: auto; /* 버튼은 클릭 가능하게 */
+      background: rgba(255, 255, 255, 0.25);
+    }
   }
 </style>
 </head>
@@ -150,7 +177,7 @@
   <button id="audio-btn" onclick="initAudio()">🔊 소리 켜기</button>
   <div id="game-container">
     <canvas id="gameCanvas" width="640" height="480"></canvas>
-    <div id="map-name-ui" style="top: 50px;">본관 복도</div>
+    <div id="map-name-ui">본관 복도</div>
     
     <div id="evidence-menu" class="collapsed">
       <div id="toggle-btn" onclick="toggleNotebook()">수첩 펴기 (C)</div>
@@ -181,19 +208,19 @@
     <div id="objection-overlay"><div id="objection-text">이의 있음!</div></div>
     <div id="fade-overlay"><div id="fade-text"></div></div>
   </div>
-</div>
 
-<!-- 모바일 조이패드 -->
-<div id="mobile-controls">
-  <div class="dpad">
-    <div style="grid-column: 2;"><button id="btn-up">▲</button></div>
-    <div style="grid-column: 1;"><button id="btn-left">◀</button></div>
-    <div style="grid-column: 3;"><button id="btn-right">▶</button></div>
-    <div style="grid-column: 2;"><button id="btn-down">▼</button></div>
-  </div>
-  <div class="action-btns">
-    <button id="btn-c" style="background: #4caf50;">수첩<br>(C)</button>
-    <button id="btn-z" style="background: #1e88e5;">조사<br>(Z)</button>
+  <!-- 모바일 조이패드 (가로 모드 시 게임 화면 위로 올라감) -->
+  <div id="mobile-controls">
+    <div class="dpad">
+      <div style="grid-column: 2;"><button id="btn-up">▲</button></div>
+      <div style="grid-column: 1;"><button id="btn-left">◀</button></div>
+      <div style="grid-column: 3;"><button id="btn-right">▶</button></div>
+      <div style="grid-column: 2;"><button id="btn-down">▼</button></div>
+    </div>
+    <div class="action-btns">
+      <button id="btn-c" style="background: #4caf50;">수첩</button>
+      <button id="btn-z" style="background: #1e88e5;">조사</button>
+    </div>
   </div>
 </div>
 
@@ -309,7 +336,6 @@ let isNotebookCollapsed = true;
 let currentSelectedEvidence = '';
 let isJinbumRevealed = false; 
 
-// 챕터별 순차 진행 관리
 let chapterProgress = { chapter1Complete: false, chapter2Complete: false, chapter3Complete: false, chapter4Complete: false };
 let defeated = { haneul: false, minseok: false, seoyoon: false, flya: false };
 let trial = { active: false, target: '', phase: 0, expectedEvidence: '', currentStatement: '' };
@@ -336,7 +362,7 @@ let oriCompanion = {
   interact: function() {
     if (!this.active) return;
     if(trial.active) startDialogue([{ speaker: '오리', text: "상대의 거짓말과 모순되는 확실한 [단서]를 수첩에서 골라 제시해! 모르면 취소 버튼을 누르자." }]);
-    else startDialogue([{ speaker: '오리', text: "자, 지널. 복도를 통해 연구실, 연습실, 컴퓨터실, 회의실, 서버실을 순서대로 방문하며 단서를 모아봐." }]);
+    else startDialogue([{ speaker: '오리', text: "자, 지널. 복도를 통해 각 방을 순서대로 방문하며 단서를 모아봐." }]);
   }
 };
 
@@ -356,7 +382,7 @@ function checkChapter1Complete() {
     chapterProgress.chapter1Complete = true;
     startDialogue([
       { speaker: '지널', text: "모든 정황이 일치해. 물리적 출입자가 없다는 게 증명됐어. 1단계 조사는 끝났어." },
-      { speaker: '오리', text: "이제 복도의 두 번째 문, '무용 연습실'로 하늘 선배를 만나러 가자!" }
+      { speaker: '오리', text: "이제 복도의 두 번째 문, '연습실'로 하늘 선배를 만나러 가자!" }
     ]);
   }
 }
@@ -536,6 +562,7 @@ function handleJinwooSuccess() {
   }
 }
 
+// ==== 대화 트리거 ====
 function handleZPress() {
   if (gameState === 'PLAY') {
     checkInteraction();
@@ -565,8 +592,8 @@ function showNextDialogue() {
 
 // ==== 맵 이동 제어 (순차 진행 강제) ====
 function changeMapWithCheck(newMapId, spawnX, spawnY, facing='down') {
-  if (newMapId === 'practice' && !chapterProgress.chapter1Complete) { startDialogue([{ speaker: '오리', text: "아직 연구실과 복도에서 모든 단서를 찾지 못했어. 1단계 조사를 끝내야 연습실로 갈 수 있어." }]); return; }
-  if (newMapId === 'computer' && !chapterProgress.chapter2Complete) { startDialogue([{ speaker: '오리', text: "아직 무용 연습실에서 하늘 선배의 거짓말을 밝혀내지 못했어." }]); return; }
+  if (newMapId === 'practice' && !chapterProgress.chapter1Complete) { startDialogue([{ speaker: '오리', text: "아직 연구실과 복도에서 단서를 다 못 찾았어. 1단계 조사를 끝내야 연습실 문이 열려." }]); return; }
+  if (newMapId === 'computer' && !chapterProgress.chapter2Complete) { startDialogue([{ speaker: '오리', text: "아직 연습실에서 하늘 선배의 거짓말을 밝혀내지 못했어." }]); return; }
   if (newMapId === 'meeting' && !chapterProgress.chapter3Complete) { startDialogue([{ speaker: '오리', text: "컴퓨터실에서 먼저 민석 선배를 조사해서 모순을 지적해야 해." }]); return; }
   if (newMapId === 'server' && !chapterProgress.chapter4Complete) { startDialogue([{ speaker: '오리', text: "회의실에서 교수님과 서윤씨의 사건 동기를 모두 파헤친 뒤에야 마지막 서버실로 갈 수 있어." }]); return; }
   changeMap(newMapId, spawnX, spawnY, facing);
@@ -585,32 +612,32 @@ const maps = {
     initObjects: function() {
       return [
         {
-          id: 'door_lab', x: 50, y: 30, width: 80, height: 20, label: '연구실 🚪', solid: true,
+          id: 'door_lab', x: 80, y: 150, width: 80, height: 20, label: '연구실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#6a6a6a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMap('lab', 300, 400, 'up'); }
         },
         {
-          id: 'door_practice', x: 180, y: 30, width: 80, height: 20, label: '연습실 🚪', solid: true,
+          id: 'door_practice', x: 280, y: 150, width: 80, height: 20, label: '연습실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#8d6e63'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMapWithCheck('practice', 300, 400, 'up'); }
         },
         {
-          id: 'door_computer', x: 310, y: 30, width: 80, height: 20, label: '컴퓨터실 🚪', solid: true,
+          id: 'door_computer', x: 480, y: 150, width: 80, height: 20, label: '컴퓨터실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#546e7a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMapWithCheck('computer', 300, 400, 'up'); }
         },
         {
-          id: 'door_meeting', x: 50, y: 150, width: 80, height: 20, label: '회의실 🚪', solid: true,
+          id: 'door_meeting', x: 180, y: 280, width: 80, height: 20, label: '회의실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#6d4c41'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMapWithCheck('meeting', 300, 400, 'up'); }
         },
         {
-          id: 'door_server', x: 50, y: 250, width: 80, height: 20, label: '서버실 🚪', solid: true,
+          id: 'door_server', x: 380, y: 280, width: 80, height: 20, label: '서버실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#b71c1c'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMapWithCheck('server', 300, 400, 'up'); }
         },
         {
-          id: 'cctv', x: 250, y: 150, width: 20, height: 30, label: '복도 CCTV', solid: true,
+          id: 'cctv', x: 310, y: 50, width: 20, height: 30, label: '복도 CCTV', solid: true,
           render: function(ctx) { ctx.fillStyle = '#212121'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle = '#ff0000'; ctx.fillRect(this.x+8, this.y+20, 4, 4); },
           interact: function() {
             if (!hasEvidence('CCTV 시각 불일치')) {
@@ -634,7 +661,12 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#6a6a6a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 90, 60, 'down'); }
+          interact: function() { changeMap('corridor', 120, 180, 'down'); }
+        },
+        {
+          id: 'bookshelf', x: 30, y: 80, width: 50, height: 100, label: '책장', solid: true,
+          render: function(ctx) { ctx.fillStyle = '#4e342e'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle='#d7ccc8'; ctx.fillRect(this.x+5, this.y+10, 40, 20); ctx.fillRect(this.x+5, this.y+40, 40, 20); },
+          interact: function() { startDialogue([{ speaker: '지널', text: "AI 논문과 두꺼운 전공 서적들이 가득하다." }]); }
         },
         {
           id: 'desk', x: 250, y: 150, width: 140, height: 70, label: '교수의 책상', solid: true,
@@ -676,9 +708,14 @@ const maps = {
     initObjects: function() {
       return [
         {
+          id: 'mirror', x: 0, y: 0, width: 640, height: 25, label: '전면 거울', solid: true,
+          render: function(ctx) { ctx.fillStyle = '#b0bec5'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.moveTo(50,25); ctx.lineTo(100,0); ctx.lineTo(150,0); ctx.lineTo(100,25); ctx.fill(); },
+          interact: function() { startDialogue([{ speaker: '지널', text: "무용 연습실의 전면 거울이다. 내 모습이 비친다." }]); }
+        },
+        {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#8d6e63'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 220, 60, 'down'); }
+          interact: function() { changeMap('corridor', 320, 180, 'down'); }
         },
         {
           id: 'terminal', x: 20, y: 150, width: 30, height: 40, label: '출입 기록기', solid: true,
@@ -701,12 +738,12 @@ const maps = {
           render: function(ctx) { ctx.fillStyle = '#f48fb1'; ctx.fillRect(this.x + 4, this.y + 16, 24, 24); ctx.fillStyle = '#ffe0bd'; ctx.fillRect(this.x + 6, this.y, 20, 16); ctx.fillStyle = '#795548'; ctx.fillRect(this.x + 2, this.y - 4, 28, 12); },
           interact: function() {
             if (chapterProgress.chapter2Complete) {
-              startDialogue([{ speaker: '강하늘', text: "나는 내 논문을 지키고 싶었을 뿐이야. 범인은 다른 사람일 거야." }]);
+              startDialogue([{ speaker: '강하늘', text: "나는 내 논문을 지키고 싶었을 뿐이야. 다른 방을 조사해봐." }]);
             } else {
               startDialogue([
                 { speaker: '강하늘', text: "지널? 아직도 여기 있었어?" },
                 { speaker: '지널', text: "긴급 공지 봤어? 연구실에서 협박 편지가 발견됐어. 오늘 밤 어디에 있었어?" },
-                { speaker: '강하늘', text: "난 그날 밤 단 한 순간도 연습실을 비우지 않았어. 음악이 끝날 때까지 계속 연습했으니까." }
+                { speaker: '강하늘', text: "난 그날 밤 단 한 순간도 연습실을 비우지 않았어. 계속 연습했으니까." }
               ], () => {
                 startTrial('강하늘', "난 그날 밤 1초도 쉬지 않고 연습실에서 연습만 했다고!", '연습실 출입 기록');
               });
@@ -728,7 +765,12 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#546e7a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 350, 60, 'down'); }
+          interact: function() { changeMap('corridor', 520, 180, 'down'); }
+        },
+        {
+          id: 'sub_server', x: 30, y: 80, width: 40, height: 120, label: '보조 서버', solid: true,
+          render: function(ctx) { ctx.fillStyle = '#263238'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle = '#00bcd4'; ctx.fillRect(this.x+10, this.y+20, 20, 5); ctx.fillRect(this.x+10, this.y+40, 20, 5); },
+          interact: function() { startDialogue([{ speaker: '지널', text: "끊임없이 데이터를 처리하고 있는 서버 랙이다." }]); }
         },
         {
           id: 'server', x: 100, y: 150, width: 120, height: 80, label: '메인 서버', solid: true,
@@ -744,7 +786,7 @@ const maps = {
           }
         },
         {
-          id: 'terminal_min', x: 50, y: 50, width: 40, height: 60, label: '단말기', solid: true,
+          id: 'terminal_min', x: 50, y: 250, width: 40, height: 60, label: '단말기', solid: true,
           render: function(ctx) { ctx.fillStyle = '#424242'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() {
             if (!hasEvidence('점검 기록')) { addEvidence('점검 기록'); startDialogue([{ speaker: '지널', text: "오민석 선배가 시스템에 단순 접속한 점검 기록이다." }]); }
@@ -782,7 +824,12 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#3e2723'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 90, 230, 'down'); }
+          interact: function() { changeMap('corridor', 220, 310, 'down'); }
+        },
+        {
+          id: 'table', x: 150, y: 150, width: 200, height: 60, label: '회의용 탁자', solid: true,
+          render: function(ctx) { ctx.fillStyle = '#5d4037'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle='#8d6e63'; ctx.fillRect(this.x+10, this.y+10, 180, 40); },
+          interact: function() { startDialogue([{ speaker: '지널', text: "대형 회의용 탁자다. 여기서 중요한 결정들이 내려졌겠지." }]); }
         },
         {
           id: 'seoyoon', x: 150, y: 250, width: 32, height: 40, label: '한서윤', solid: true,
@@ -845,7 +892,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#b71c1c'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 90, 330, 'down'); }
+          interact: function() { changeMap('corridor', 420, 310, 'down'); }
         },
         {
           id: 'ai_console', x: 100, y: 100, width: 100, height: 80, label: 'AI 자동화 콘솔', solid: true,
@@ -868,7 +915,7 @@ const maps = {
               addEvidence('인증 기록');
               startDialogue([
                 { speaker: '지널', text: "설정이 변경된 시각과 일치하는 인증 기록을 찾았어." },
-                { speaker: '오리', text: "인증에 사용된 건 도진우 본인의 '물리적 보안 토큰'이야. 이건 해킹될 수 없는 완벽한 물증이지!" }
+                { speaker: '오리', text: "인증에는 도진우에게 등록된 물리적 보안 토큰이 사용됐어. 이건 해킹될 수 없는 완벽한 물증이지!" }
               ]);
             } else startDialogue([{ speaker: '지널', text: "도진우의 물리적 인증 기록이다." }]);
           }
@@ -881,7 +928,7 @@ const maps = {
           },
           interact: function() {
             if (isJinbumRevealed) {
-              startDialogue([{ speaker: '도진우 (진범)', text: "...더 이상 할 말은 없다. 기록을 신뢰하지 않는 네가 이겼어." }]);
+              startDialogue([{ speaker: '도진우 (진범)', text: "...더 이상 할 말은 없다. 네가 이겼어." }]);
               return;
             }
             startDialogue([
@@ -972,7 +1019,7 @@ function update() {
   if (gameState === 'PLAY') {
     let dx = 0; let dy = 0;
     if (keys.ArrowUp) { dy -= player.speed; player.facing = 'up'; }
-    if (keys.ArrowDown) { dy += player.speed; player.facing = 'down'; }
+    if (keys.ArrowDown) { dy -= player.speed; player.facing = 'down'; }
     if (keys.ArrowLeft) { dx -= player.speed; player.facing = 'left'; }
     if (keys.ArrowRight) { dx += player.speed; player.facing = 'right'; }
 
@@ -1033,6 +1080,7 @@ function draw() {
 function loop() { update(); draw(); requestAnimationFrame(loop); }
 
 window.onload = () => {
+  // 시작 위치: 중앙 복도 (순차적 맵 강제 활성화)
   changeMap('corridor', 300, 400, 'up');
   
   fadeOverlay.style.backgroundColor = 'black';
