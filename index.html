@@ -95,6 +95,7 @@
     text-align: center; background: #444; border: 1px solid #777; border-radius: 3px;
     font-size: 12px; padding: 4px; cursor: pointer; color: #fff;
   }
+  #toggle-btn:hover { background: #666; }
   #notebook-content { margin-top: 10px; }
   #evidence-menu h3 { margin: 0 0 10px 0; font-size: 14px; color: #4caf50; text-align: center; border-bottom: 1px dashed #fff; padding-bottom: 8px; }
   
@@ -150,31 +151,34 @@
     #controls-help { display: none; }
   }
 
-  /* 📱 모바일 가로 모드 (Landscape) 대응 */
-  @media (orientation: landscape) and (max-height: 500px) {
-    #game-wrapper {
-      width: 133.33vh; /* 가로를 높이에 맞춰 4:3으로 변환 */
-      height: 100vh;
-      max-width: none;
-      max-height: none;
-    }
-    #mobile-controls {
-      position: absolute; bottom: 15px; left: 0; width: 100%;
-      padding: 0 30px; box-sizing: border-box;
-      display: flex; justify-content: space-between;
-      z-index: 100; margin-top: 0; pointer-events: none; /* 캔버스 터치 방해 금지 */
-    }
-    .dpad button, .action-btns button {
-      pointer-events: auto; /* 버튼은 클릭 가능하게 */
-      background: rgba(255, 255, 255, 0.25);
-    }
+  /* 📱 모바일 세로 화면 강제 (가로 모드 방지 오버레이) */
+  #portrait-lock {
+    display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: #000; color: #fff; z-index: 9999;
+    flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  }
+  #portrait-lock span { font-size: 50px; margin-bottom: 20px; animation: rotatePhone 1.5s infinite ease-in-out; }
+  @keyframes rotatePhone { 0% { transform: rotate(-90deg); } 50% { transform: rotate(0deg); } 100% { transform: rotate(0deg); } }
+
+  /* 스마트폰 가로 모드일 때만 게임을 가리고 안내창 표시 */
+  @media screen and (max-height: 500px) and (orientation: landscape) {
+    #game-wrapper, #mobile-controls, #controls-help, #audio-btn { display: none !important; }
+    #portrait-lock { display: flex !important; }
   }
 </style>
 </head>
 <body>
 
+<!-- 세로 모드 안내 오버레이 -->
+<div id="portrait-lock">
+  <span>📱</span>
+  <h2>세로 모드로 들어주세요!</h2>
+  <p style="font-size:14px; color:#aaa; margin-top:10px;">이 게임은 모바일 세로 화면에 최적화되어 있습니다.</p>
+</div>
+
+<button id="audio-btn" onclick="initAudio()">🔊 소리 켜기 (클릭)</button>
+
 <div id="game-wrapper">
-  <button id="audio-btn" onclick="initAudio()">🔊 소리 켜기</button>
   <div id="game-container">
     <canvas id="gameCanvas" width="640" height="480"></canvas>
     <div id="map-name-ui">본관 복도</div>
@@ -208,19 +212,19 @@
     <div id="objection-overlay"><div id="objection-text">이의 있음!</div></div>
     <div id="fade-overlay"><div id="fade-text"></div></div>
   </div>
+</div>
 
-  <!-- 모바일 조이패드 (가로 모드 시 게임 화면 위로 올라감) -->
-  <div id="mobile-controls">
-    <div class="dpad">
-      <div style="grid-column: 2;"><button id="btn-up">▲</button></div>
-      <div style="grid-column: 1;"><button id="btn-left">◀</button></div>
-      <div style="grid-column: 3;"><button id="btn-right">▶</button></div>
-      <div style="grid-column: 2;"><button id="btn-down">▼</button></div>
-    </div>
-    <div class="action-btns">
-      <button id="btn-c" style="background: #4caf50;">수첩</button>
-      <button id="btn-z" style="background: #1e88e5;">조사</button>
-    </div>
+<!-- 모바일 조이패드 -->
+<div id="mobile-controls">
+  <div class="dpad">
+    <div style="grid-column: 2;"><button id="btn-up">▲</button></div>
+    <div style="grid-column: 1;"><button id="btn-left">◀</button></div>
+    <div style="grid-column: 3;"><button id="btn-right">▶</button></div>
+    <div style="grid-column: 2;"><button id="btn-down">▼</button></div>
+  </div>
+  <div class="action-btns">
+    <button id="btn-c" style="background: #4caf50;">수첩</button>
+    <button id="btn-z" style="background: #1e88e5;">조사</button>
   </div>
 </div>
 
@@ -362,7 +366,7 @@ let oriCompanion = {
   interact: function() {
     if (!this.active) return;
     if(trial.active) startDialogue([{ speaker: '오리', text: "상대의 거짓말과 모순되는 확실한 [단서]를 수첩에서 골라 제시해! 모르면 취소 버튼을 누르자." }]);
-    else startDialogue([{ speaker: '오리', text: "자, 지널. 복도를 통해 각 방을 순서대로 방문하며 단서를 모아봐." }]);
+    else startDialogue([{ speaker: '오리', text: "자, 지널. 복도를 통해 연구실, 연습실, 컴퓨터실, 회의실, 서버실을 순서대로 방문하며 단서를 모아봐." }]);
   }
 };
 
@@ -382,7 +386,7 @@ function checkChapter1Complete() {
     chapterProgress.chapter1Complete = true;
     startDialogue([
       { speaker: '지널', text: "모든 정황이 일치해. 물리적 출입자가 없다는 게 증명됐어. 1단계 조사는 끝났어." },
-      { speaker: '오리', text: "이제 복도의 두 번째 문, '연습실'로 하늘 선배를 만나러 가자!" }
+      { speaker: '오리', text: "이제 복도의 두 번째 문, '무용 연습실'로 하늘 선배를 만나러 가자!" }
     ]);
   }
 }
@@ -562,7 +566,6 @@ function handleJinwooSuccess() {
   }
 }
 
-// ==== 대화 트리거 ====
 function handleZPress() {
   if (gameState === 'PLAY') {
     checkInteraction();
@@ -592,8 +595,8 @@ function showNextDialogue() {
 
 // ==== 맵 이동 제어 (순차 진행 강제) ====
 function changeMapWithCheck(newMapId, spawnX, spawnY, facing='down') {
-  if (newMapId === 'practice' && !chapterProgress.chapter1Complete) { startDialogue([{ speaker: '오리', text: "아직 연구실과 복도에서 단서를 다 못 찾았어. 1단계 조사를 끝내야 연습실 문이 열려." }]); return; }
-  if (newMapId === 'computer' && !chapterProgress.chapter2Complete) { startDialogue([{ speaker: '오리', text: "아직 연습실에서 하늘 선배의 거짓말을 밝혀내지 못했어." }]); return; }
+  if (newMapId === 'practice' && !chapterProgress.chapter1Complete) { startDialogue([{ speaker: '오리', text: "아직 연구실과 복도에서 모든 단서를 찾지 못했어. 1단계 조사를 끝내야 연습실로 갈 수 있어." }]); return; }
+  if (newMapId === 'computer' && !chapterProgress.chapter2Complete) { startDialogue([{ speaker: '오리', text: "아직 무용 연습실에서 하늘 선배의 거짓말을 밝혀내지 못했어." }]); return; }
   if (newMapId === 'meeting' && !chapterProgress.chapter3Complete) { startDialogue([{ speaker: '오리', text: "컴퓨터실에서 먼저 민석 선배를 조사해서 모순을 지적해야 해." }]); return; }
   if (newMapId === 'server' && !chapterProgress.chapter4Complete) { startDialogue([{ speaker: '오리', text: "회의실에서 교수님과 서윤씨의 사건 동기를 모두 파헤친 뒤에야 마지막 서버실로 갈 수 있어." }]); return; }
   changeMap(newMapId, spawnX, spawnY, facing);
@@ -612,32 +615,32 @@ const maps = {
     initObjects: function() {
       return [
         {
-          id: 'door_lab', x: 80, y: 150, width: 80, height: 20, label: '연구실 🚪', solid: true,
+          id: 'door_lab', x: 50, y: 30, width: 80, height: 20, label: '연구실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#6a6a6a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMap('lab', 300, 400, 'up'); }
         },
         {
-          id: 'door_practice', x: 280, y: 150, width: 80, height: 20, label: '연습실 🚪', solid: true,
+          id: 'door_practice', x: 180, y: 30, width: 80, height: 20, label: '연습실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#8d6e63'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMapWithCheck('practice', 300, 400, 'up'); }
         },
         {
-          id: 'door_computer', x: 480, y: 150, width: 80, height: 20, label: '컴퓨터실 🚪', solid: true,
+          id: 'door_computer', x: 310, y: 30, width: 80, height: 20, label: '컴퓨터실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#546e7a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMapWithCheck('computer', 300, 400, 'up'); }
         },
         {
-          id: 'door_meeting', x: 180, y: 280, width: 80, height: 20, label: '회의실 🚪', solid: true,
+          id: 'door_meeting', x: 50, y: 150, width: 80, height: 20, label: '회의실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#6d4c41'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMapWithCheck('meeting', 300, 400, 'up'); }
         },
         {
-          id: 'door_server', x: 380, y: 280, width: 80, height: 20, label: '서버실 🚪', solid: true,
+          id: 'door_server', x: 50, y: 250, width: 80, height: 20, label: '서버실 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#b71c1c'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() { changeMapWithCheck('server', 300, 400, 'up'); }
         },
         {
-          id: 'cctv', x: 310, y: 50, width: 20, height: 30, label: '복도 CCTV', solid: true,
+          id: 'cctv', x: 250, y: 150, width: 20, height: 30, label: '복도 CCTV', solid: true,
           render: function(ctx) { ctx.fillStyle = '#212121'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle = '#ff0000'; ctx.fillRect(this.x+8, this.y+20, 4, 4); },
           interact: function() {
             if (!hasEvidence('CCTV 시각 불일치')) {
@@ -661,12 +664,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#6a6a6a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 120, 180, 'down'); }
-        },
-        {
-          id: 'bookshelf', x: 30, y: 80, width: 50, height: 100, label: '책장', solid: true,
-          render: function(ctx) { ctx.fillStyle = '#4e342e'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle='#d7ccc8'; ctx.fillRect(this.x+5, this.y+10, 40, 20); ctx.fillRect(this.x+5, this.y+40, 40, 20); },
-          interact: function() { startDialogue([{ speaker: '지널', text: "AI 논문과 두꺼운 전공 서적들이 가득하다." }]); }
+          interact: function() { changeMap('corridor', 90, 60, 'down'); }
         },
         {
           id: 'desk', x: 250, y: 150, width: 140, height: 70, label: '교수의 책상', solid: true,
@@ -708,14 +706,9 @@ const maps = {
     initObjects: function() {
       return [
         {
-          id: 'mirror', x: 0, y: 0, width: 640, height: 25, label: '전면 거울', solid: true,
-          render: function(ctx) { ctx.fillStyle = '#b0bec5'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.moveTo(50,25); ctx.lineTo(100,0); ctx.lineTo(150,0); ctx.lineTo(100,25); ctx.fill(); },
-          interact: function() { startDialogue([{ speaker: '지널', text: "무용 연습실의 전면 거울이다. 내 모습이 비친다." }]); }
-        },
-        {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#8d6e63'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 320, 180, 'down'); }
+          interact: function() { changeMap('corridor', 220, 60, 'down'); }
         },
         {
           id: 'terminal', x: 20, y: 150, width: 30, height: 40, label: '출입 기록기', solid: true,
@@ -765,12 +758,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#546e7a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 520, 180, 'down'); }
-        },
-        {
-          id: 'sub_server', x: 30, y: 80, width: 40, height: 120, label: '보조 서버', solid: true,
-          render: function(ctx) { ctx.fillStyle = '#263238'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle = '#00bcd4'; ctx.fillRect(this.x+10, this.y+20, 20, 5); ctx.fillRect(this.x+10, this.y+40, 20, 5); },
-          interact: function() { startDialogue([{ speaker: '지널', text: "끊임없이 데이터를 처리하고 있는 서버 랙이다." }]); }
+          interact: function() { changeMap('corridor', 350, 60, 'down'); }
         },
         {
           id: 'server', x: 100, y: 150, width: 120, height: 80, label: '메인 서버', solid: true,
@@ -786,7 +774,7 @@ const maps = {
           }
         },
         {
-          id: 'terminal_min', x: 50, y: 250, width: 40, height: 60, label: '단말기', solid: true,
+          id: 'terminal_min', x: 50, y: 50, width: 40, height: 60, label: '단말기', solid: true,
           render: function(ctx) { ctx.fillStyle = '#424242'; ctx.fillRect(this.x, this.y, this.width, this.height); },
           interact: function() {
             if (!hasEvidence('점검 기록')) { addEvidence('점검 기록'); startDialogue([{ speaker: '지널', text: "오민석 선배가 시스템에 단순 접속한 점검 기록이다." }]); }
@@ -824,12 +812,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#3e2723'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 220, 310, 'down'); }
-        },
-        {
-          id: 'table', x: 150, y: 150, width: 200, height: 60, label: '회의용 탁자', solid: true,
-          render: function(ctx) { ctx.fillStyle = '#5d4037'; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.fillStyle='#8d6e63'; ctx.fillRect(this.x+10, this.y+10, 180, 40); },
-          interact: function() { startDialogue([{ speaker: '지널', text: "대형 회의용 탁자다. 여기서 중요한 결정들이 내려졌겠지." }]); }
+          interact: function() { changeMap('corridor', 90, 230, 'down'); }
         },
         {
           id: 'seoyoon', x: 150, y: 250, width: 32, height: 40, label: '한서윤', solid: true,
@@ -892,7 +875,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#b71c1c'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 420, 310, 'down'); }
+          interact: function() { changeMap('corridor', 90, 330, 'down'); }
         },
         {
           id: 'ai_console', x: 100, y: 100, width: 100, height: 80, label: 'AI 자동화 콘솔', solid: true,
@@ -915,7 +898,7 @@ const maps = {
               addEvidence('인증 기록');
               startDialogue([
                 { speaker: '지널', text: "설정이 변경된 시각과 일치하는 인증 기록을 찾았어." },
-                { speaker: '오리', text: "인증에는 도진우에게 등록된 물리적 보안 토큰이 사용됐어. 이건 해킹될 수 없는 완벽한 물증이지!" }
+                { speaker: '오리', text: "인증에는 도진우 본인의 '물리적 보안 토큰'이 사용됐어. 이건 해킹될 수 없는 완벽한 물증이지!" }
               ]);
             } else startDialogue([{ speaker: '지널', text: "도진우의 물리적 인증 기록이다." }]);
           }
@@ -955,7 +938,7 @@ function changeMap(newMapId, spawnX, spawnY, facing='down') {
   }, 500);
 }
 
-// ==== 입력 및 루프 (모바일 버튼 포함) ====
+// ==== 입력 및 루프 ====
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyC') toggleNotebook();
   if (gameState === 'PLAY') {
@@ -1080,7 +1063,6 @@ function draw() {
 function loop() { update(); draw(); requestAnimationFrame(loop); }
 
 window.onload = () => {
-  // 시작 위치: 중앙 복도 (순차적 맵 강제 활성화)
   changeMap('corridor', 300, 400, 'up');
   
   fadeOverlay.style.backgroundColor = 'black';
