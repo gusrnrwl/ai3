@@ -2,7 +2,6 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<!-- 모바일 환경에서 스크롤 및 확대 방지 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AI 방패와 사라진 접속자</title>
 <style>
@@ -12,10 +11,9 @@
     margin: 0; padding: 0; background-color: #111; color: #fff;
     font-family: 'Galmuri11', sans-serif; display: flex; flex-direction: column;
     justify-content: center; align-items: center; height: 100vh; overflow: hidden;
-    touch-action: none; /* 모바일에서 화면 스크롤링 완벽 방지 */
+    touch-action: none;
   }
 
-  /* 게임 래퍼 - 세로 모드 화면 비율 설정 */
   #game-wrapper {
     position: relative; 
     width: 100vw; 
@@ -32,7 +30,6 @@
     image-rendering: pixelated;
   }
   
-  /* 이의있음! 화면 흔들림 효과 */
   @keyframes shake {
     0% { transform: translate(2px, 2px) rotate(0deg); }
     10% { transform: translate(-2px, -2px) rotate(-1deg); }
@@ -50,7 +47,6 @@
 
   canvas { display: block; width: 100%; height: 100%; }
 
-  /* 페이드 오버레이 */
   #fade-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-color: black; opacity: 1; pointer-events: none;
@@ -59,7 +55,6 @@
   }
   #fade-text { color: #fff; font-size: clamp(16px, 4vw, 20px); transition: opacity 0.3s ease; line-height: 1.5; padding: 0 20px;}
 
-  /* 이의있음 연출 오버레이 */
   #objection-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(200, 0, 0, 0.85); opacity: 0; pointer-events: none;
@@ -73,7 +68,6 @@
   }
   .objection-active #objection-text { transform: scale(1.2); }
 
-  /* 대화창 UI */
   #dialogue-box {
     position: absolute; bottom: 0; left: 0; width: 100%; height: 32%; min-height: 120px;
     background: linear-gradient(135deg, rgba(0, 30, 80, 0.95), rgba(0, 10, 30, 0.95));
@@ -87,10 +81,9 @@
   #continue-indicator { position: absolute; bottom: 10px; right: 15px; font-size: 12px; color: #aaa; animation: blink 1s infinite; }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-  /* 수사 수첩 UI (기본: PC 모드) */
   #evidence-menu {
     position: absolute; top: 10px; right: 10px; width: 50%; max-width: 230px;
-    background: rgba(0, 0, 0, 0.9); border: 2px solid #aaa; border-radius: 5px;
+    background: rgba(0, 0, 0, 0.95); border: 2px solid #aaa; border-radius: 5px;
     padding: 10px; z-index: 30; display: flex; flex-direction: column;
   }
   #evidence-menu.collapsed { width: auto; padding: 5px 10px; }
@@ -108,27 +101,29 @@
   #evidence-list-container::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
   
   .category-title { color: #90caf9; font-size: 12px; margin: 10px 0 5px 0; font-weight: bold; border-bottom: 1px solid #444; }
-  .evidence-item { font-size: 11px; line-height: 1.5; margin-left: 5px; cursor: pointer; color: #fff; transition: color 0.2s; margin-bottom: 3px;}
+  .evidence-item { font-size: 11px; line-height: 1.5; margin-left: 5px; cursor: pointer; color: #fff; transition: color 0.2s; margin-bottom: 3px; padding: 3px 0;}
+  .evidence-item:hover { color: #ffeb3b; text-decoration: underline; background: rgba(255,255,255,0.1); }
 
-  /* 단서 상세 모달 */
   #evidence-modal {
     position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
     width: 80%; max-width: 320px; max-height: 90vh; overflow-y: auto;
-    background: rgba(20, 20, 20, 0.95);
-    border: 3px solid #ffeb3b; border-radius: 8px; padding: 15px;
-    display: none; z-index: 40; box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    background: rgba(20, 20, 20, 0.98);
+    border: 3px solid #ffeb3b; border-radius: 8px; padding: 20px;
+    display: none; z-index: 40; box-shadow: 0 0 20px rgba(0,0,0,0.9);
   }
-  #modal-title { color: #ffeb3b; font-size: 16px; margin-bottom: 5px; font-weight: bold; }
-  #modal-category { color: #90caf9; font-size: 11px; margin-bottom: 10px; }
-  #modal-desc { font-size: 13px; line-height: 1.5; color: #ddd; margin-bottom: 15px; }
-  .modal-buttons { display: flex; justify-content: center; gap: 10px; }
+  #modal-title { color: #ffeb3b; font-size: 18px; margin-bottom: 5px; font-weight: bold; }
+  #modal-category { color: #90caf9; font-size: 12px; margin-bottom: 12px; border-bottom: 1px dashed #555; padding-bottom: 8px;}
+  #modal-desc { font-size: 14px; line-height: 1.6; color: #ddd; margin-bottom: 20px; }
+  
+  .modal-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
   .btn {
-    text-align: center; background: #333; padding: 8px 10px; border-radius: 4px;
-    cursor: pointer; font-size: 12px; border: 1px solid #777; color: #fff; flex: 1;
+    text-align: center; background: #333; padding: 12px 10px; border-radius: 6px;
+    cursor: pointer; font-size: 14px; border: 1px solid #777; color: #fff; width: 100%; box-sizing: border-box; font-family: 'Galmuri11';
   }
-  #present-btn { background: #b71c1c; border-color: #f44336; display: none; font-weight: bold;}
+  .btn:hover { background: #555; }
+  #present-btn { background: #1e88e5; border-color: #1565c0; display: none; font-weight: bold; font-size: 16px;}
+  #present-btn:hover { background: #1565c0; }
 
-  /* 왼쪽 상단 UI */
   #map-name-ui { position: absolute; top: 50px; left: 10px; background: rgba(0,0,0,0.7); padding: 5px 10px; border: 1px solid #fff; font-size: 12px; color: #fff; z-index: 4; border-radius: 4px;}
   
   #audio-btn {
@@ -137,7 +132,6 @@
     border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 2px 2px 0px #000; font-size: 12px;
   }
 
-  /* 📱 모바일 가상 조이패드 UI */
   #mobile-controls {
     display: none; width: 100%; max-width: 640px; margin-top: 15px;
     padding: 0 15px; box-sizing: border-box; justify-content: space-between; align-items: center;
@@ -152,25 +146,22 @@
   .action-btns button { width: 65px; height: 65px; font-size: 14px; border-radius: 50%; font-weight: bold; }
   #controls-help { margin-top: 15px; font-size: 12px; color: #888; text-align: center; line-height: 1.5; }
 
-  /* 📱 스마트폰 모바일 최적화 (수사 수첩 및 가상 패드) */
   @media (max-width: 768px) {
     #mobile-controls { display: flex; }
     #controls-help { display: none; }
     
-    /* 모바일에서 수첩을 열었을 때 전체 화면 팝업처럼 쾌적하게 띄움 */
     #evidence-menu:not(.collapsed) {
       top: 5%; left: 5%; right: 5%; bottom: 5%; 
       width: 90%; max-width: none; height: 90%; 
       z-index: 100;
     }
     #evidence-menu:not(.collapsed) #evidence-list-container {
-      max-height: none; /* 팝업 크기에 맞춰 자동으로 늘어남 */
+      max-height: none; 
     }
-    .evidence-item { font-size: 13px; padding: 5px 0; }
+    .evidence-item { font-size: 13px; padding: 8px 0; }
     .category-title { font-size: 14px; margin-top: 15px; }
   }
 
-  /* 📱 세로 모드 고정 (가로로 돌리면 플레이 차단) */
   #portrait-lock {
     display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background-color: #000; color: #fff; z-index: 9999;
@@ -187,7 +178,6 @@
 </head>
 <body>
 
-<!-- 가로 모드 차단 안내창 -->
 <div id="portrait-lock">
   <span>📱</span>
   <h2>세로 모드로 들어주세요!</h2>
@@ -200,7 +190,6 @@
     <canvas id="gameCanvas" width="640" height="480"></canvas>
     <div id="map-name-ui">본관 복도</div>
     
-    <!-- 수사 수첩 (모바일에서는 팝업 형태로 확대됨) -->
     <div id="evidence-menu" class="collapsed">
       <div id="toggle-btn" onclick="toggleNotebook()">수첩 펴기 (C)</div>
       <div id="notebook-content">
@@ -222,8 +211,8 @@
       <div id="modal-category">[카테고리]</div>
       <div id="modal-desc">상세 설명</div>
       <div class="modal-buttons">
-        <div id="present-btn" class="btn" onclick="presentEvidence(false)">이 증거를 제시!</div>
-        <div class="btn" onclick="presentEvidence(true)">닫기 / 제시 취소</div>
+        <div id="present-btn" class="btn" onclick="presentEvidence(false)">제출하겠습니다!</div>
+        <div id="cancel-btn" class="btn" onclick="presentEvidence(true)">제시 취소 / 닫기</div>
       </div>
     </div>
 
@@ -232,7 +221,6 @@
   </div>
 </div>
 
-<!-- 모바일 조이패드 (Grid 좌표 명확하게 지정하여 방향 꼬임 방지) -->
 <div id="mobile-controls">
   <div class="dpad">
     <div style="grid-column: 2; grid-row: 1;"><button id="btn-up">▲</button></div>
@@ -253,12 +241,15 @@
 
 <script>
 // ==========================================
-// 🎵 웹 오디오 API 사운드 시스템 (ON/OFF 토글)
+// 🎵 사운드 처리 (ON/OFF 토글)
 // ==========================================
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 let audioEnabled = false;
 let bgmInterval;
+
+// 연출 중 조작 방지용 전역 변수
+let isAnimating = false; 
 
 function toggleAudio() {
   if(!audioCtx) audioCtx = new AudioContext();
@@ -390,17 +381,19 @@ let oriCompanion = {
     ctx.fillStyle = '#212121'; ctx.fillRect(this.x + 10, this.y + 6 + hover, 4, 4);
     ctx.fillStyle = '#03a9f4'; ctx.fillRect(this.x + 12, this.y - 4 + hover, 4, 6);
     ctx.fillStyle = '#fff'; ctx.font = '10px "Galmuri11"'; ctx.fillText("오리", this.x + 2, this.y - 8 + hover);
-  },
-  update: function(px, py) {
-    if (!this.active) return;
-    let targetX = px - 35; let targetY = py - 15;
-    this.x += (targetX - this.x) * 0.08; this.y += (targetY - this.y) * 0.08;
-  },
-  interact: function() {
-    if (!this.active) return;
-    if(trial.active) startDialogue([{ speaker: '오리', text: "상대의 거짓말과 모순되는 확실한 [단서]를 수첩에서 골라 제시해! 모르면 취소 버튼을 누르자." }]);
-    else startDialogue([{ speaker: '오리', text: "자, 지널. 복도를 통해 연구실, 연습실, 컴퓨터실, 회의실, 서버실을 순서대로 방문하며 단서를 모아봐." }]);
   }
+};
+
+// 동행 AI 업데이트 로직
+oriCompanion.update = function(px, py) {
+  if (!this.active) return;
+  let targetX = px - 35; let targetY = py - 15;
+  this.x += (targetX - this.x) * 0.08; this.y += (targetY - this.y) * 0.08;
+};
+oriCompanion.interact = function() {
+  if (!this.active) return;
+  if(trial.active) startDialogue([{ speaker: '오리', text: "상대의 거짓말과 모순되는 확실한 [단서]를 수첩에서 골라 제시해! 모르면 취소 버튼을 누르자." }]);
+  else startDialogue([{ speaker: '오리', text: "자, 지널. 복도를 통해 연구실, 연습실, 컴퓨터실, 회의실, 서버실을 순서대로 방문하며 단서를 모아봐." }]);
 };
 
 function hasEvidence(name) { return collectedEvidences.includes(name); }
@@ -436,7 +429,13 @@ function updateEvidenceUI() {
       evidenceListContainer.appendChild(catTitle);
       grouped[cat].forEach(ev => {
         const item = document.createElement('div'); item.className = 'evidence-item'; item.textContent = '■ ' + ev;
-        item.onclick = () => showEvidenceDetail(ev); evidenceListContainer.appendChild(item);
+        item.onclick = () => {
+          if (!isNotebookCollapsed && window.innerWidth <= 768) {
+            toggleNotebook();
+          }
+          showEvidenceDetail(ev);
+        };
+        evidenceListContainer.appendChild(item);
       });
     }
   });
@@ -456,8 +455,14 @@ function showEvidenceDetail(name) {
   document.getElementById('modal-category').textContent = `획득 장소: [${data.category}]`;
   document.getElementById('modal-desc').textContent = data.desc;
   
-  if (trial.active) presentBtn.style.display = 'block';
-  else presentBtn.style.display = 'none';
+  if (trial.active) {
+    presentBtn.style.display = 'block';
+    presentBtn.textContent = '제출하겠습니다!';
+    document.getElementById('cancel-btn').textContent = '제시 취소';
+  } else {
+    presentBtn.style.display = 'none';
+    document.getElementById('cancel-btn').textContent = '닫기';
+  }
 
   document.getElementById('evidence-modal').style.display = 'block';
   if(gameState === 'PLAY' || gameState === 'TRIAL') gameState = 'EVIDENCE';
@@ -471,7 +476,9 @@ function closeEvidenceDetail() {
   }
 }
 
+// 이의있음 연출 (연출 중 키 입력 차단 기능 포함)
 function triggerObjection(callback) {
+  isAnimating = true; 
   playObjection(); 
   gameContainer.classList.add('shake-effect');
   objectionOverlay.style.opacity = '1'; objectionOverlay.classList.add('objection-active');
@@ -479,6 +486,7 @@ function triggerObjection(callback) {
     objectionOverlay.style.opacity = '0'; objectionOverlay.classList.remove('objection-active');
     gameContainer.classList.remove('shake-effect');
     if(callback) callback();
+    setTimeout(() => { isAnimating = false; }, 300); // 연출 끝난 후 살짝 여유를 두고 락 해제
   }, 1200);
 }
 
@@ -486,7 +494,7 @@ function startTrial(targetName, statement, expected) {
   trial.active = true; trial.target = targetName; trial.expectedEvidence = expected; trial.currentStatement = statement;
   gameState = 'TRIAL'; dialogueBox.classList.add('trial-mode');
   if(isNotebookCollapsed) toggleNotebook();
-  startDialogue([{ speaker: targetName, text: statement + "\n(모순을 깰 단서를 수첩에서 꺼내 [이 증거를 제시!] 버튼 클릭)" }]);
+  startDialogue([{ speaker: targetName, text: statement + "\n(모순을 깰 단서를 수첩에서 꺼내 [제출하겠습니다!] 버튼 클릭)" }]);
 }
 
 function endTrialMode() {
@@ -496,7 +504,7 @@ function endTrialMode() {
 function presentEvidence(isCanceled = false) {
   closeEvidenceDetail();
   if (isCanceled && trial.active) {
-    endTrialMode(); startDialogue([{ speaker: '지널', text: "(아직 반박할 단서가 수첩에 없어. 조사를 더 해보자.)" }]);
+    endTrialMode(); startDialogue([{ speaker: '지널', text: "(아직 이 주장을 반박할 확실한 증거가 수첩에 없어. 대화를 취소하고 단서를 더 찾아보자.)" }]);
     return;
   }
   if (!trial.active) return;
@@ -514,7 +522,7 @@ function presentEvidence(isCanceled = false) {
     startDialogue([
       { speaker: '지널', text: "이 증거를 보세요! [" + currentSelectedEvidence + "]입니다!" },
       { speaker: trial.target, text: "...그게 지금 내 말과 무슨 상관인데? 억지 부리지 마." },
-      { speaker: '오리', text: "지널, 그 단서로는 모순을 입증할 수 없어. 제대로 된 증거를 골라!" }
+      { speaker: '오리', text: "지널, 그 단서로는 모순을 입증할 수 없어. 제대로 된 증거를 찾아와!" }
     ]);
   }
 }
@@ -599,13 +607,15 @@ function handleJinwooSuccess() {
   }
 }
 
-// ==== 대화 트리거 (PC 버그 해결을 위해 키 초기화 포함) ====
+// 대화 넘김 트리거
 function handleZPress() {
+  if (isAnimating) return; 
+  
   if (gameState === 'PLAY') {
     checkInteraction();
   } else if (gameState === 'DIALOGUE' || gameState === 'TRIAL') {
     if (gameState === 'TRIAL' && dialogueBox.style.display === 'none') {
-      startDialogue([{ speaker: trial.target, text: trial.currentStatement + "\n(모순을 깰 단서를 수첩에서 꺼내 [이 증거를 제시!] 버튼 클릭)" }]);
+      startDialogue([{ speaker: trial.target, text: trial.currentStatement + "\n(모순을 깰 단서를 수첩에서 꺼내 [제출하겠습니다!] 버튼 클릭)" }]);
     } else showNextDialogue();
   } else if (gameState === 'EVIDENCE') {
     closeEvidenceDetail();
@@ -613,7 +623,7 @@ function handleZPress() {
 }
 
 function startDialogue(lines, callback = null) {
-  // 방향키 버그 해결: 대화창이 뜰 때 눌려있던 모든 키를 리셋!
+  // PC 방향키 버그(대화 후 강제 이동)를 막기 위해 대화 시작 시 키보드 입력을 완전히 강제 초기화!
   keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
   if (gameState !== 'TRIAL') gameState = 'DIALOGUE'; 
   currentDialogue = lines; dialogueIndex = 0; dialogueBox.callback = callback; showNextDialogue();
@@ -633,7 +643,7 @@ function showNextDialogue() {
 // ==== 맵 이동 제어 (순차 진행 강제) ====
 function changeMapWithCheck(newMapId, spawnX, spawnY, facing='down') {
   if (newMapId === 'practice' && !chapterProgress.chapter1Complete) { startDialogue([{ speaker: '오리', text: "아직 연구실과 복도에서 모든 단서를 찾지 못했어. 1단계 조사를 끝내야 연습실로 갈 수 있어." }]); return; }
-  if (newMapId === 'computer' && !chapterProgress.chapter2Complete) { startDialogue([{ speaker: '오리', text: "아직 무용 연습실에서 하늘 선배의 거짓말을 밝혀내지 못했어." }]); return; }
+  if (newMapId === 'computer' && !chapterProgress.chapter2Complete) { startDialogue([{ speaker: '오리', text: "아직 연습실에서 하늘 선배의 거짓말을 밝혀내지 못했어." }]); return; }
   if (newMapId === 'meeting' && !chapterProgress.chapter3Complete) { startDialogue([{ speaker: '오리', text: "컴퓨터실에서 먼저 민석 선배를 조사해서 모순을 지적해야 해." }]); return; }
   if (newMapId === 'server' && !chapterProgress.chapter4Complete) { startDialogue([{ speaker: '오리', text: "회의실에서 교수님과 서윤씨의 사건 동기를 모두 파헤친 뒤에야 마지막 서버실로 갈 수 있어." }]); return; }
   changeMap(newMapId, spawnX, spawnY, facing);
@@ -701,7 +711,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#6a6a6a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 120, 190, 'down'); } 
+          interact: function() { changeMap('corridor', 120, 190, 'down'); }
         },
         {
           id: 'desk', x: 250, y: 150, width: 140, height: 70, label: '교수의 책상', solid: true,
@@ -948,7 +958,7 @@ const maps = {
           },
           interact: function() {
             if (isJinbumRevealed) {
-              startDialogue([{ speaker: '도진우 (진범)', text: "...더 이상 할 말은 없다. 기록을 신뢰하지 않는 네가 이겼어." }]);
+              startDialogue([{ speaker: '도진우 (진범)', text: "...더 이상 할 말은 없다. 네가 이겼어." }]);
               return;
             }
             startDialogue([
@@ -975,13 +985,11 @@ function changeMap(newMapId, spawnX, spawnY, facing='down') {
   }, 500);
 }
 
-// ==== 키보드 이벤트 방지 및 조작 제어 ====
+// ==== 입력 제어 ====
 window.addEventListener('keydown', (e) => {
-  // 브라우저 스크롤링 원천 차단 (PC 방향키 버그의 주요 원인)
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
-    e.preventDefault();
-  }
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault(); // 스크롤링 원천 차단
   
+  if (isAnimating) return; // 연출 중 조작 차단
   if (e.code === 'KeyC') toggleNotebook();
   
   if (gameState === 'PLAY') {
@@ -998,9 +1006,9 @@ const btnLeft = document.getElementById('btn-left'); const btnRight = document.g
 const btnZ = document.getElementById('btn-z'); const btnC = document.getElementById('btn-c');
 
 const bindBtn = (btn, code) => {
-  btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[code] = true; });
+  btn.addEventListener('touchstart', (e) => { e.preventDefault(); if(!isAnimating) keys[code] = true; });
   btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[code] = false; });
-  btn.addEventListener('mousedown', (e) => { e.preventDefault(); keys[code] = true; });
+  btn.addEventListener('mousedown', (e) => { e.preventDefault(); if(!isAnimating) keys[code] = true; });
   btn.addEventListener('mouseup', (e) => { e.preventDefault(); keys[code] = false; });
   btn.addEventListener('mouseleave', (e) => { e.preventDefault(); keys[code] = false; });
 };
@@ -1042,13 +1050,13 @@ function isColliding(px, py, pw, ph, obj) {
 }
 
 function update() {
-  // 모바일 속도 2배 (4.9) 상향 / PC 2.45
-  player.speed = (window.innerWidth <= 768 || 'ontouchstart' in window) ? 4.9 : 2.45;
+  // 모바일 속도 1.5배 올림: 7.35 / PC: 2.45
+  player.speed = (window.innerWidth <= 768 || 'ontouchstart' in window) ? 7.35 : 2.45;
 
-  if (gameState === 'PLAY') {
+  if (gameState === 'PLAY' && !isAnimating) {
     let dx = 0; let dy = 0;
     if (keys.ArrowUp) { dy -= player.speed; player.facing = 'up'; }
-    if (keys.ArrowDown) { dy += player.speed; player.facing = 'down'; }
+    if (keys.ArrowDown) { dy += player.speed; player.facing = 'down'; } // 방향키 버그 완전 수정 완료!
     if (keys.ArrowLeft) { dx -= player.speed; player.facing = 'left'; }
     if (keys.ArrowRight) { dx += player.speed; player.facing = 'right'; }
 
@@ -1094,16 +1102,31 @@ function drawBgStyle(ctx) {
   }
 }
 
+// Y축 기반 렌더링 시스템 적용(캐릭터와 사물이 자연스럽게 겹침)
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBgStyle(ctx);
 
+  let renderItems = [];
   objects.forEach(obj => {
-    obj.render(ctx); ctx.fillStyle = '#fff'; ctx.font = '11px "Galmuri11"'; ctx.fillText(obj.label, obj.x, obj.y - 8);
+    renderItems.push({ 
+      bottomY: obj.y + (obj.height || 0), 
+      render: () => {
+        obj.render(ctx); 
+        ctx.fillStyle = '#fff'; ctx.font = '11px "Galmuri11"'; ctx.fillText(obj.label, obj.x, obj.y - 8);
+      } 
+    });
   });
+  
+  renderItems.push({ bottomY: player.y + player.height, render: () => drawPlayer(ctx) });
+  
+  if (oriCompanion.active) {
+    renderItems.push({ bottomY: oriCompanion.y + oriCompanion.height, render: () => oriCompanion.render(ctx) });
+  }
 
-  drawPlayer(ctx);
-  oriCompanion.render(ctx);
+  // 바닥 Y좌표 기준 오름차순 정렬 (아래에 있는게 더 나중에 그려져서 위에 덮어씌움)
+  renderItems.sort((a, b) => a.bottomY - b.bottomY);
+  renderItems.forEach(item => item.render());
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }
