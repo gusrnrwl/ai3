@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<!-- 모바일 환경에서 스크롤 및 확대 방지 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AI 방패와 사라진 접속자</title>
 <style>
@@ -11,9 +12,10 @@
     margin: 0; padding: 0; background-color: #111; color: #fff;
     font-family: 'Galmuri11', sans-serif; display: flex; flex-direction: column;
     justify-content: center; align-items: center; height: 100vh; overflow: hidden;
-    touch-action: none; /* 모바일 화면 스크롤 방지 */
+    touch-action: none; /* 모바일에서 화면 스크롤링 완벽 방지 */
   }
 
+  /* 게임 래퍼 - 세로 모드 화면 비율 설정 */
   #game-wrapper {
     position: relative; 
     width: 100vw; 
@@ -30,6 +32,7 @@
     image-rendering: pixelated;
   }
   
+  /* 이의있음! 화면 흔들림 효과 */
   @keyframes shake {
     0% { transform: translate(2px, 2px) rotate(0deg); }
     10% { transform: translate(-2px, -2px) rotate(-1deg); }
@@ -47,6 +50,7 @@
 
   canvas { display: block; width: 100%; height: 100%; }
 
+  /* 페이드 오버레이 */
   #fade-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-color: black; opacity: 1; pointer-events: none;
@@ -55,6 +59,7 @@
   }
   #fade-text { color: #fff; font-size: clamp(16px, 4vw, 20px); transition: opacity 0.3s ease; line-height: 1.5; padding: 0 20px;}
 
+  /* 이의있음 연출 오버레이 */
   #objection-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(200, 0, 0, 0.85); opacity: 0; pointer-events: none;
@@ -68,6 +73,7 @@
   }
   .objection-active #objection-text { transform: scale(1.2); }
 
+  /* 대화창 UI */
   #dialogue-box {
     position: absolute; bottom: 0; left: 0; width: 100%; height: 32%; min-height: 120px;
     background: linear-gradient(135deg, rgba(0, 30, 80, 0.95), rgba(0, 10, 30, 0.95));
@@ -81,10 +87,11 @@
   #continue-indicator { position: absolute; bottom: 10px; right: 15px; font-size: 12px; color: #aaa; animation: blink 1s infinite; }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+  /* 수사 수첩 UI (기본: PC 모드) */
   #evidence-menu {
     position: absolute; top: 10px; right: 10px; width: 50%; max-width: 230px;
     background: rgba(0, 0, 0, 0.9); border: 2px solid #aaa; border-radius: 5px;
-    padding: 10px; z-index: 30; 
+    padding: 10px; z-index: 30; display: flex; flex-direction: column;
   }
   #evidence-menu.collapsed { width: auto; padding: 5px 10px; }
   #evidence-menu.collapsed #notebook-content { display: none; }
@@ -93,16 +100,17 @@
     font-size: 12px; padding: 4px; cursor: pointer; color: #fff;
   }
   #toggle-btn:hover { background: #666; }
-  #notebook-content { margin-top: 10px; }
+  #notebook-content { margin-top: 10px; display: flex; flex-direction: column; flex: 1; min-height: 0;}
   #evidence-menu h3 { margin: 0 0 10px 0; font-size: 14px; color: #4caf50; text-align: center; border-bottom: 1px dashed #fff; padding-bottom: 8px; }
   
-  #evidence-list-container { max-height: 30vh; overflow-y: auto; overflow-x: hidden; padding-right: 5px;}
+  #evidence-list-container { flex: 1; max-height: 220px; overflow-y: auto; overflow-x: hidden; padding-right: 5px;}
   #evidence-list-container::-webkit-scrollbar { width: 6px; }
   #evidence-list-container::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
   
   .category-title { color: #90caf9; font-size: 12px; margin: 10px 0 5px 0; font-weight: bold; border-bottom: 1px solid #444; }
   .evidence-item { font-size: 11px; line-height: 1.5; margin-left: 5px; cursor: pointer; color: #fff; transition: color 0.2s; margin-bottom: 3px;}
 
+  /* 단서 상세 모달 */
   #evidence-modal {
     position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
     width: 80%; max-width: 320px; max-height: 90vh; overflow-y: auto;
@@ -120,38 +128,49 @@
   }
   #present-btn { background: #b71c1c; border-color: #f44336; display: none; font-weight: bold;}
 
-  /* UI 위치 사진에 맞게 재조정 */
+  /* 왼쪽 상단 UI */
+  #map-name-ui { position: absolute; top: 50px; left: 10px; background: rgba(0,0,0,0.7); padding: 5px 10px; border: 1px solid #fff; font-size: 12px; color: #fff; z-index: 4; border-radius: 4px;}
+  
   #audio-btn {
     position: absolute; top: 10px; left: 10px; z-index: 100;
     padding: 6px 10px; font-family: 'Galmuri11'; background: #d32f2f; color: #fff; border: 2px solid #fff;
     border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 2px 2px 0px #000; font-size: 12px;
   }
-  #map-name-ui { 
-    position: absolute; top: 55px; left: 10px; background: rgba(0,0,0,0.7); 
-    padding: 5px 10px; border: 1px solid #fff; font-size: 12px; color: #fff; z-index: 4; border-radius: 4px;
-  }
 
-  /* 📱 모바일 세로 모드 컨트롤 UI (Grid 오류 완벽 수정) */
+  /* 📱 모바일 가상 조이패드 UI */
   #mobile-controls {
     display: none; width: 100%; max-width: 640px; margin-top: 15px;
     padding: 0 15px; box-sizing: border-box; justify-content: space-between; align-items: center;
   }
-  .dpad { display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(3, 50px); grid-gap: 5px; }
+  .dpad { display: grid; grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px 50px; grid-gap: 5px; }
   .dpad button, .action-btns button {
     background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255,255,255,0.4);
     color: white; font-family: 'Galmuri11'; border-radius: 8px; font-size: 18px;
     width: 100%; height: 100%; user-select: none; touch-action: manipulation;
   }
   .action-btns { display: flex; gap: 10px; }
-  .action-btns button { width: 60px; height: 60px; font-size: 14px; border-radius: 50%; font-weight: bold; }
+  .action-btns button { width: 65px; height: 65px; font-size: 14px; border-radius: 50%; font-weight: bold; }
   #controls-help { margin-top: 15px; font-size: 12px; color: #888; text-align: center; line-height: 1.5; }
 
+  /* 📱 스마트폰 모바일 최적화 (수사 수첩 및 가상 패드) */
   @media (max-width: 768px) {
     #mobile-controls { display: flex; }
     #controls-help { display: none; }
+    
+    /* 모바일에서 수첩을 열었을 때 전체 화면 팝업처럼 쾌적하게 띄움 */
+    #evidence-menu:not(.collapsed) {
+      top: 5%; left: 5%; right: 5%; bottom: 5%; 
+      width: 90%; max-width: none; height: 90%; 
+      z-index: 100;
+    }
+    #evidence-menu:not(.collapsed) #evidence-list-container {
+      max-height: none; /* 팝업 크기에 맞춰 자동으로 늘어남 */
+    }
+    .evidence-item { font-size: 13px; padding: 5px 0; }
+    .category-title { font-size: 14px; margin-top: 15px; }
   }
 
-  /* 📱 세로 화면 강제 고정 오버레이 */
+  /* 📱 세로 모드 고정 (가로로 돌리면 플레이 차단) */
   #portrait-lock {
     display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background-color: #000; color: #fff; z-index: 9999;
@@ -159,14 +178,16 @@
   }
   #portrait-lock span { font-size: 50px; margin-bottom: 20px; animation: rotatePhone 1.5s infinite ease-in-out; }
   @keyframes rotatePhone { 0% { transform: rotate(-90deg); } 50% { transform: rotate(0deg); } 100% { transform: rotate(0deg); } }
+  
   @media screen and (max-height: 500px) and (orientation: landscape) {
-    #game-wrapper, #mobile-controls, #controls-help, #audio-btn { display: none !important; }
+    #game-wrapper, #mobile-controls, #controls-help { display: none !important; }
     #portrait-lock { display: flex !important; }
   }
 </style>
 </head>
 <body>
 
+<!-- 가로 모드 차단 안내창 -->
 <div id="portrait-lock">
   <span>📱</span>
   <h2>세로 모드로 들어주세요!</h2>
@@ -174,11 +195,12 @@
 </div>
 
 <div id="game-wrapper">
-  <button id="audio-btn" onclick="initAudio()">🔊 소리 켜기</button>
+  <button id="audio-btn" onclick="toggleAudio()">🔇 소리 꺼짐</button>
   <div id="game-container">
     <canvas id="gameCanvas" width="640" height="480"></canvas>
     <div id="map-name-ui">본관 복도</div>
     
+    <!-- 수사 수첩 (모바일에서는 팝업 형태로 확대됨) -->
     <div id="evidence-menu" class="collapsed">
       <div id="toggle-btn" onclick="toggleNotebook()">수첩 펴기 (C)</div>
       <div id="notebook-content">
@@ -201,7 +223,7 @@
       <div id="modal-desc">상세 설명</div>
       <div class="modal-buttons">
         <div id="present-btn" class="btn" onclick="presentEvidence(false)">이 증거를 제시!</div>
-        <div class="btn" onclick="presentEvidence(true)">제시 취소 / 닫기</div>
+        <div class="btn" onclick="presentEvidence(true)">닫기 / 제시 취소</div>
       </div>
     </div>
 
@@ -210,9 +232,9 @@
   </div>
 </div>
 
+<!-- 모바일 조이패드 (Grid 좌표 명확하게 지정하여 방향 꼬임 방지) -->
 <div id="mobile-controls">
   <div class="dpad">
-    <!-- 모바일 방향키 격자 겹침 오류를 명확한 grid-row 값으로 완벽 해결 -->
     <div style="grid-column: 2; grid-row: 1;"><button id="btn-up">▲</button></div>
     <div style="grid-column: 1; grid-row: 2;"><button id="btn-left">◀</button></div>
     <div style="grid-column: 3; grid-row: 2;"><button id="btn-right">▶</button></div>
@@ -230,22 +252,34 @@
 </div>
 
 <script>
+// ==========================================
+// 🎵 웹 오디오 API 사운드 시스템 (ON/OFF 토글)
+// ==========================================
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 let audioEnabled = false;
+let bgmInterval;
 
-function initAudio() {
-  if(!audioEnabled) {
-    audioCtx = new AudioContext();
-    audioEnabled = true;
-    document.getElementById('audio-btn').style.background = '#4caf50';
-    document.getElementById('audio-btn').innerText = '🔊 켜짐';
+function toggleAudio() {
+  if(!audioCtx) audioCtx = new AudioContext();
+  
+  audioEnabled = !audioEnabled;
+  const btn = document.getElementById('audio-btn');
+  
+  if (audioEnabled) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    btn.style.background = '#4caf50';
+    btn.innerText = '🔊 소리 켜짐';
     playBGM();
+  } else {
+    btn.style.background = '#d32f2f';
+    btn.innerText = '🔇 소리 꺼짐';
+    stopBGM();
   }
 }
 
 function playBGM() {
-  if(!audioEnabled) return;
+  if (!audioEnabled || bgmInterval) return;
   const playNote = (freq, time) => {
     let osc = audioCtx.createOscillator();
     let gain = audioCtx.createGain();
@@ -255,9 +289,15 @@ function playBGM() {
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + time + 0.4);
     osc.start(audioCtx.currentTime + time); osc.stop(audioCtx.currentTime + time + 0.4);
   };
-  setInterval(() => {
+  playNote(150, 0); playNote(200, 0.5); playNote(180, 1.0); playNote(220, 1.5);
+  bgmInterval = setInterval(() => {
     playNote(150, 0); playNote(200, 0.5); playNote(180, 1.0); playNote(220, 1.5);
   }, 2000);
+}
+
+function stopBGM() {
+  clearInterval(bgmInterval);
+  bgmInterval = null;
 }
 
 function playObjection() {
@@ -286,6 +326,9 @@ function playEvidenceSound() {
   osc.start(); osc.stop(audioCtx.currentTime + 0.3);
 }
 
+// ==========================================
+// 게임 로직 및 DB
+// ==========================================
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const gameContainer = document.getElementById('game-container');
@@ -334,8 +377,8 @@ let chapterProgress = { chapter1Complete: false, chapter2Complete: false, chapte
 let defeated = { haneul: false, minseok: false, seoyoon: false, flya: false };
 let trial = { active: false, target: '', phase: 0, expectedEvidence: '', currentStatement: '' };
 
-const player = { x: 300, y: 400, width: 32, height: 40, speed: 2.45, facing: 'up' };
-const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+const player = { x: 300, y: 350, width: 32, height: 40, speed: 2.45, facing: 'up' };
+let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
 
 let oriCompanion = {
   active: true, x: 300, y: 380, width: 24, height: 24,
@@ -453,7 +496,7 @@ function endTrialMode() {
 function presentEvidence(isCanceled = false) {
   closeEvidenceDetail();
   if (isCanceled && trial.active) {
-    endTrialMode(); startDialogue([{ speaker: '지널', text: "(아직 이 주장을 반박할 확실한 증거가 수첩에 없어. 조사를 더 해보자.)" }]);
+    endTrialMode(); startDialogue([{ speaker: '지널', text: "(아직 반박할 단서가 수첩에 없어. 조사를 더 해보자.)" }]);
     return;
   }
   if (!trial.active) return;
@@ -556,6 +599,7 @@ function handleJinwooSuccess() {
   }
 }
 
+// ==== 대화 트리거 (PC 버그 해결을 위해 키 초기화 포함) ====
 function handleZPress() {
   if (gameState === 'PLAY') {
     checkInteraction();
@@ -569,9 +613,12 @@ function handleZPress() {
 }
 
 function startDialogue(lines, callback = null) {
+  // 방향키 버그 해결: 대화창이 뜰 때 눌려있던 모든 키를 리셋!
+  keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
   if (gameState !== 'TRIAL') gameState = 'DIALOGUE'; 
   currentDialogue = lines; dialogueIndex = 0; dialogueBox.callback = callback; showNextDialogue();
 }
+
 function showNextDialogue() {
   if (dialogueIndex < currentDialogue.length) {
     dialogueBox.style.display = 'block'; speakerName.textContent = currentDialogue[dialogueIndex].speaker;
@@ -592,7 +639,7 @@ function changeMapWithCheck(newMapId, spawnX, spawnY, facing='down') {
   changeMap(newMapId, spawnX, spawnY, facing);
 }
 
-// ==== 맵 데이터 (사진 기반 좌표 100% 매칭) ====
+// ==== 맵 데이터 ====
 const maps = {
   'corridor': {
     name: '본관 3층 복도', bg: '#2f2f2f',
@@ -600,11 +647,9 @@ const maps = {
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       for(let i=0; i<canvas.width; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
       for(let i=0; i<canvas.height; i+=40) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
-      // 장식용 배경 창문 등
       ctx.fillStyle = 'rgba(100, 150, 200, 0.1)'; ctx.fillRect(440, 20, 150, 60); ctx.fillRect(440, 100, 150, 60);
     },
     initObjects: function() {
-      // 이미지 좌표에 맞춰 문 위치 정밀 조정
       return [
         {
           id: 'door_lab', x: 80, y: 150, width: 80, height: 30, label: '연구실 🚪', solid: true,
@@ -656,7 +701,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#6a6a6a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 120, 190, 'down'); } // 위치 보정
+          interact: function() { changeMap('corridor', 120, 190, 'down'); } 
         },
         {
           id: 'desk', x: 250, y: 150, width: 140, height: 70, label: '교수의 책상', solid: true,
@@ -700,7 +745,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#8d6e63'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 320, 190, 'down'); } // 위치 보정
+          interact: function() { changeMap('corridor', 320, 190, 'down'); }
         },
         {
           id: 'terminal', x: 20, y: 150, width: 30, height: 40, label: '출입 기록기', solid: true,
@@ -750,7 +795,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#546e7a'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 520, 190, 'down'); } // 위치 보정
+          interact: function() { changeMap('corridor', 520, 190, 'down'); }
         },
         {
           id: 'server', x: 100, y: 150, width: 120, height: 80, label: '메인 서버', solid: true,
@@ -804,7 +849,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#3e2723'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 220, 320, 'down'); } // 위치 보정
+          interact: function() { changeMap('corridor', 220, 320, 'down'); }
         },
         {
           id: 'seoyoon', x: 150, y: 250, width: 32, height: 40, label: '한서윤', solid: true,
@@ -867,7 +912,7 @@ const maps = {
         {
           id: 'door_exit', x: 280, y: 450, width: 80, height: 20, label: '복도로 🚪', solid: true,
           render: function(ctx) { ctx.fillStyle = '#b71c1c'; ctx.fillRect(this.x, this.y, this.width, this.height); },
-          interact: function() { changeMap('corridor', 420, 320, 'down'); } // 위치 보정
+          interact: function() { changeMap('corridor', 420, 320, 'down'); }
         },
         {
           id: 'ai_console', x: 100, y: 100, width: 100, height: 80, label: 'AI 자동화 콘솔', solid: true,
@@ -903,7 +948,7 @@ const maps = {
           },
           interact: function() {
             if (isJinbumRevealed) {
-              startDialogue([{ speaker: '도진우 (진범)', text: "...더 이상 할 말은 없다. 네가 이겼어." }]);
+              startDialogue([{ speaker: '도진우 (진범)', text: "...더 이상 할 말은 없다. 기록을 신뢰하지 않는 네가 이겼어." }]);
               return;
             }
             startDialogue([
@@ -930,9 +975,15 @@ function changeMap(newMapId, spawnX, spawnY, facing='down') {
   }, 500);
 }
 
-// ==== 입력 및 루프 (모바일 버튼 포함) ====
+// ==== 키보드 이벤트 방지 및 조작 제어 ====
 window.addEventListener('keydown', (e) => {
+  // 브라우저 스크롤링 원천 차단 (PC 방향키 버그의 주요 원인)
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+    e.preventDefault();
+  }
+  
   if (e.code === 'KeyC') toggleNotebook();
+  
   if (gameState === 'PLAY') {
     if (keys.hasOwnProperty(e.code)) keys[e.code] = true;
     if (e.code === 'KeyZ' || e.code === 'Space') handleZPress();
@@ -991,7 +1042,7 @@ function isColliding(px, py, pw, ph, obj) {
 }
 
 function update() {
-  // 모바일 접속 시 자동 속도 상향 (4.9) / PC는 2.45
+  // 모바일 속도 2배 (4.9) 상향 / PC 2.45
   player.speed = (window.innerWidth <= 768 || 'ontouchstart' in window) ? 4.9 : 2.45;
 
   if (gameState === 'PLAY') {
@@ -1022,7 +1073,7 @@ function drawBgStyle(ctx) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     for(let i=0; i<canvas.width; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
     for(let i=0; i<canvas.height; i+=40) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
-    ctx.fillStyle = 'rgba(100, 200, 255, 0.1)'; ctx.fillRect(450, 20, 150, 60); ctx.fillRect(450, 100, 150, 60);
+    ctx.fillStyle = 'rgba(100, 200, 255, 0.1)'; ctx.fillRect(440, 20, 150, 60); ctx.fillRect(440, 100, 150, 60);
   } else if(currentMap === 'lab') {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     for(let i=0; i<canvas.width; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
